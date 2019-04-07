@@ -48,7 +48,7 @@ public class PregledActivity extends ListActivity {
 
     protected void onActivityResult(int reqCode, int resCode, Intent data) {
         super.onActivityResult(reqCode, resCode, data);
-        new WSPregledHelper().execute(wsUrl);
+        new WSPregledHelper(this).execute(wsUrl);
     }
     // privatni razred - jednostavnosti radi da bi mogao bez problema ažurirati ekranska polja aktivnosti
     // Ova obrada se odrađuje u pozadini - u drugom procesu da ne blokira korisničko sučelje.
