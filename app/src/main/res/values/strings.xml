@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Korisnici - Web Servis</string>
+    <string name="azuriranje_korisnika">Ažuriranje korisnika</string>
+    <string name="pregled_korisnika">Pregled korisnika</string>
+    <string name="hint_id">ID</string>
+    <string name="citaj">Čitaj</string>
+    <string name="hint_korisnicko_ime">Korisničko ime</string>
+    <string name="hint_ime">Ime</string>
+    <string name="unos">Unos</string>
+    <string name="izmjena">Izmjena</string>
+    <string name="brisanje">Brisanje</string>
+</resources>
