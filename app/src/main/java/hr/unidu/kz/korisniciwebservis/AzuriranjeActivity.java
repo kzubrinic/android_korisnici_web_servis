@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
@@ -59,7 +60,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
         User k = new User(0,korisnik.getText().toString(), ime.getText().toString());
         String kj = gson.toJson(k, User.class);
         // stvaranje novog korisnika - metoda POST s praznim id-jem (vrijednost id-ja je 0)
-        new WSHelper().execute(wsUrl, "POST", kj);
+        new WSHelper(this).execute(wsUrl, "POST", kj);
     }
 
     // Izmjena zapisa pomoću web servisa
@@ -76,7 +77,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
         String kj = gson.toJson(k, User.class);
         Log.i("PUT",kj);
         // izmjena korisnika - metoda PUT - na url se dodaje id korisnika koji se mijenja
-        new WSHelper().execute(wsUrl+"/"+id.getText().toString(), "PUT", kj);
+        new WSHelper(this).execute(wsUrl+"/"+id.getText().toString(), "PUT", kj);
     }
 
     // Brisanje zapisa pomoću web servisa
@@ -100,7 +101,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
         User k = new User(Integer.parseInt(id.getText().toString()),korisnik.getText().toString(), ime.getText().toString());
         String kj = gson.toJson(k, User.class);
         // čitanje korisnika - metoda GET - na url se dodaje id korisnika koji se čita
-        new WSHelper().execute(wsUrl+"/"+id.getText().toString(), "GET", kj);
+        new WSHelper(this).execute(wsUrl+"/"+id.getText().toString(), "GET", kj);
     }
 
     /*
@@ -130,7 +131,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
         User k = new User(Integer.parseInt(id.getText().toString()),korisnik.getText().toString(), ime.getText().toString());
         String kj = gson.toJson(k, User.class);
         // brisanje korisnika - metoda DELETE - na url se dodaje id korisnika koji se mijenja
-        new WSHelper().execute(wsUrl+"/"+id.getText().toString(), "DELETE", kj);
+        new WSHelper(this).execute(wsUrl+"/"+id.getText().toString(), "DELETE", kj);
     }
 
     @Override
@@ -139,7 +140,14 @@ public class AzuriranjeActivity extends AppCompatActivity {
         finish();
     }
 
-    private class WSHelper extends AsyncTask<String, Void, Integer> {
+    private static class WSHelper extends AsyncTask<String, Void, Integer> {
+
+        private WeakReference<AzuriranjeActivity> activityReference;
+
+        // only retain a weak reference to the activity
+        public WSHelper(AzuriranjeActivity context) {
+            activityReference = new WeakReference<>(context);
+        }
         @Override
         protected Integer doInBackground(String... parms) {
             int br = parms.length;
@@ -168,7 +176,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
                         // parsiramo podatke JSON formatu u objekt tipa Users
                         Gson gson = new Gson();
                         Users korisnici = gson.fromJson(res, Users.class);
-                        kor = korisnici.getUsers()[0];
+                        activityReference.get().kor = korisnici.getUsers()[0];
                         // metodi onPostExecute šalje se id korisnika
                         return korisnici.getUsers()[0].getId();
                     }
@@ -178,7 +186,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
                         String res = inputStreamToString(conn.getErrorStream());
                         // parsiramo podatke JSON formata u objekt tipa Greska
                         Gson gson = new Gson();
-                        err = gson.fromJson(res, Greska.class);
+                        activityReference.get().err = gson.fromJson(res, Greska.class);
                         return null;
                     }
                 }
@@ -195,7 +203,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
                         String res = inputStreamToString(conn.getErrorStream());
                         // parsiramo podatke JSON formata u objekt tipa Greska
                         Gson gson = new Gson();
-                        err = gson.fromJson(res, Greska.class);
+                        activityReference.get().err = gson.fromJson(res, Greska.class);
                         return null;
                     }
                 }
@@ -205,7 +213,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
                         // parsiramo podatke JSON formatu u objekt tipa Users
                         Gson gson = new Gson();
                         Users korisnici = gson.fromJson(res, Users.class);
-                        kor = korisnici.getUsers()[0];
+                        activityReference.get().kor = korisnici.getUsers()[0];
                         // metodi onPostExecute šalje se id korisnika
                         return korisnici.getUsers()[0].getId();
                     }
@@ -215,13 +223,13 @@ public class AzuriranjeActivity extends AppCompatActivity {
                         String res = inputStreamToString(conn.getErrorStream());
                         // parsiramo podatke JSON formata u objekt tipa Greska
                         Gson gson = new Gson();
-                        err = gson.fromJson(res, Greska.class);
+                        activityReference.get().err = gson.fromJson(res, Greska.class);
                         return null;
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                err.setError(e.getMessage());
+                activityReference.get().err.setError(e.getMessage());
             } finally {
                 if (conn != null)
                     conn.disconnect();
@@ -231,26 +239,28 @@ public class AzuriranjeActivity extends AppCompatActivity {
         // metoda prima polje objekata tipa User
         @Override
         protected void onPostExecute(Integer tid){
+            AzuriranjeActivity activity = activityReference.get();
+            if (activity == null || activity.isFinishing()) return;
             // Uspješna obrada
             if (tid != null) {
-                id.setText(Integer.toString(tid));
+                activity.id.setText(Integer.toString(tid));
                 // brisanje uspješno
                 if (tid == 0){
-                    id.setText("");
-                    korisnik.setText("");
-                    ime.setText("");
-                    id.requestFocus();
+                    activity.id.setText("");
+                    activity.korisnik.setText("");
+                    activity.ime.setText("");
+                    activity.id.requestFocus();
                 }
                 else {
-                    id.setText(Integer.toString(kor.getId()));
-                    korisnik.setText(kor.getUsername());
-                    ime.setText(kor.getName());
+                    activity.id.setText(Integer.toString(activity.kor.getId()));
+                    activity.korisnik.setText(activity.kor.getUsername());
+                    activity.ime.setText(activity.kor.getName());
                 }
-                Toast.makeText(con, "Obrada uspješna! " + tid, Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "Obrada uspješna! " + tid, Toast.LENGTH_LONG).show();
             }
             else {
                 // Greška
-                Toast.makeText(con, err.getError(), Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, activity.err.getError(), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -258,7 +268,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
     /*
         Pomoćna metoda koja dohvaća String iz primljenog input ili error streama
     */
-    private String inputStreamToString(InputStream is){
+    private static String inputStreamToString(InputStream is){
         Scanner s = new Scanner(is).useDelimiter("\\A");
         String res = s.hasNext() ? s.next() : "";
         s.close();
