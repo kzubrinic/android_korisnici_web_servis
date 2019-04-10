@@ -137,7 +137,6 @@ public class AzuriranjeActivity extends AppCompatActivity {
     public void onBackPressed() {
         Intent mIntent = new Intent();
         finish();
-        //super.onBackPressed();
     }
 
     private class WSHelper extends AsyncTask<String, Void, Integer> {
