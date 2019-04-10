@@ -175,8 +175,8 @@ public class AzuriranjeActivity extends AppCompatActivity {
                     }
                     else {
                         // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
-                        // Dohvaćamo InputStream koji vraća web servis i pretvaramo ga u JSON String
-                        String res = inputStreamToString(conn.getInputStream());
+                        // Koristi se ErrorStream, ane InputStream koji vraća web servis i pretvaramo ga u JSON String
+                        String res = inputStreamToString(conn.getErrorStream());
                         // parsiramo podatke JSON formata u objekt tipa Greska
                         Gson gson = new Gson();
                         err = gson.fromJson(res, Greska.class);
@@ -192,8 +192,8 @@ public class AzuriranjeActivity extends AppCompatActivity {
                     }
                     else {
                         // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
-                        // Dohvaćamo InputStream koji vraća web servis i pretvaramo ga u JSON String
-                        String res = inputStreamToString(conn.getInputStream());
+                        // Koristi se ErrorStream, ane InputStream koji vraća web servis i pretvaramo ga u JSON String
+                        String res = inputStreamToString(conn.getErrorStream());
                         // parsiramo podatke JSON formata u objekt tipa Greska
                         Gson gson = new Gson();
                         err = gson.fromJson(res, Greska.class);
@@ -202,11 +202,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
                 }
                 else if (parms[1].equals("GET")){
                     if (conn.getResponseCode() == 200 ) {
-                        InputStream is = conn.getInputStream();
-                        Scanner s = new Scanner(is).useDelimiter("\\A");
-                        String res = s.hasNext() ? s.next() : "";
-                        s.close();
-                        is.close();
+                        String res = inputStreamToString(conn.getInputStream());
                         // parsiramo podatke JSON formatu u objekt tipa Users
                         Gson gson = new Gson();
                         Users korisnici = gson.fromJson(res, Users.class);
@@ -216,8 +212,8 @@ public class AzuriranjeActivity extends AppCompatActivity {
                     }
                     else {
                         // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
-                        // Dohvaćamo InputStream koji vraća web servis i pretvaramo ga u JSON String
-                        String res = inputStreamToString(conn.getInputStream());
+                        // Koristi se ErrorStream, ane InputStream koji vraća web servis i pretvaramo ga u JSON String
+                        String res = inputStreamToString(conn.getErrorStream());
                         // parsiramo podatke JSON formata u objekt tipa Greska
                         Gson gson = new Gson();
                         err = gson.fromJson(res, Greska.class);
@@ -259,6 +255,10 @@ public class AzuriranjeActivity extends AppCompatActivity {
             }
         }
     }
+
+    /*
+        Pomoćna metoda koja dohvaća String iz primljenog input ili error streama
+    */
     private String inputStreamToString(InputStream is){
         Scanner s = new Scanner(is).useDelimiter("\\A");
         String res = s.hasNext() ? s.next() : "";

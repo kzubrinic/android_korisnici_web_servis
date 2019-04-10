@@ -19,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
+import hr.unidu.kz.korisniciwebservis.pojo.Greska;
 import hr.unidu.kz.korisniciwebservis.pojo.User;
 import hr.unidu.kz.korisniciwebservis.pojo.Users;
 
@@ -27,6 +28,7 @@ public class PregledActivity extends ListActivity {
     private Context con;
     private PregledAdapter adapter = null;
     private User[] kor ;
+    private Greska err = new Greska();
     private String wsUrl = "https://api.meditor.com.hr/users";
 
     @Override
@@ -88,28 +90,45 @@ public class PregledActivity extends ListActivity {
                 // koristimo HTTP GET metodu za dohvat
                 conn.setRequestMethod("GET");
                 // dohvaćamo podatke u obliku ulaznog niza
-                InputStream is = conn.getInputStream();
                 // ako su podaci u redno dohvaćeni (HTTP kod 200)
                 if (conn.getResponseCode() == 200) {
                     // pretvaramo ulazni InputStream u String
-                    Scanner s = new Scanner(is).useDelimiter("\\A");
-                    String res = s.hasNext() ? s.next() : "";
-                    s.close();
-                    is.close();
+                    String res = inputStreamToString(conn.getInputStream());
                     // parsiramo podatke JSON formatu u objekt tipa Users
                     Gson gson = new Gson();
                     Users korisnici = gson.fromJson(res, Users.class);
                     // metodi onPostExecute šalje se polje objekata tipa User kako bi se
                     // lista popunila podacima pročitanih korisnika
                     return korisnici.getUsers();
+                }else {
+                    // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
+                    // Koristi se ErrorStream, ane InputStream koji vraća web servis i pretvaramo ga u JSON String
+                    String res = inputStreamToString(conn.getErrorStream());
+                    // parsiramo podatke JSON formata u objekt tipa Greska
+                    Gson gson = new Gson();
+                    // Ažuriramo informaciju o grešci, ako se dogodila
+                    activityReference.get().err = gson.fromJson(res, Greska.class);
+                    return null;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
+            } catch(Exception e){
+                e.printStackTrace();
+            } finally{
                 if (conn != null)
                     conn.disconnect();
             }
             return null;
+        }
+
+        /*
+    Pomoćna metoda koja dohvaća String iz primljenog input ili error streama
+        */
+        private String inputStreamToString(InputStream is){
+            Scanner s = new Scanner(is).useDelimiter("\\A");
+            String res = s.hasNext() ? s.next() : "";
+            s.close();
+            return res;
         }
 
         @Override
@@ -119,8 +138,12 @@ public class PregledActivity extends ListActivity {
             // get a reference to the activity if it is still there
             PregledActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing()) return;
-
-            // modify the activity's UI
+            // Dogodila se greška kod dohvata
+            if (rez == null){
+                Toast.makeText(activity, activity.err.getError(), Toast.LENGTH_LONG).show();
+                return;
+            }
+            // Inače ažuriraj listu
             activity.kor = rez;
             // nakon što dohvati podatke, stvara se adapter za pregled
             activity.adapter = new PregledAdapter(activity.con, activity.kor);
