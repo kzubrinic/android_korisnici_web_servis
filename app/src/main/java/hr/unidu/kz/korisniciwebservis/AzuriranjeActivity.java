@@ -4,8 +4,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -29,7 +29,8 @@ import hr.unidu.kz.korisniciwebservis.pojo.Users;
 public class AzuriranjeActivity extends AppCompatActivity {
     private TextView id, korisnik, ime;
     private Context con;
-    private String wsUrl = "https://api.meditor.com.hr/users";
+    private String wsUrl;
+    //= "https://api.meditor.com.hr/users";
     private Greska err = new Greska();
     private User kor;
     @Override
@@ -46,6 +47,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
             korisnik.setText(intent.getStringExtra("korisnik"));
             ime.setText(intent.getStringExtra("ime"));
         }
+        wsUrl = intent.getStringExtra("url_web_servisa");
     }
 
     // Unos novog zapisa pomoću web servisa

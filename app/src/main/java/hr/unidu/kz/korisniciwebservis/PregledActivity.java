@@ -29,11 +29,13 @@ public class PregledActivity extends ListActivity {
     private PregledAdapter adapter = null;
     private User[] kor ;
     private Greska err = new Greska();
-    private String wsUrl = "https://api.meditor.com.hr/users";
+    private String wsUrl;
 
     @Override
     protected void onCreate(Bundle icicle) {
         con = this;
+        Intent intent = getIntent();
+        wsUrl = intent.getStringExtra("url_web_servisa");
         // nakon što dohvati listu, ažurira pregled
         new WSPregledHelper(this).execute(wsUrl);
         super.onCreate(icicle);
@@ -44,6 +46,7 @@ public class PregledActivity extends ListActivity {
         intent.putExtra("id", izabrani.getId());
         intent.putExtra("korisnik", izabrani.getUsername());
         intent.putExtra("ime", izabrani.getName());
+        intent.putExtra("url_web_servisa", wsUrl);
         startActivityForResult(intent,0);
         Toast.makeText(this, "Ime: "+izabrani.getName() , Toast.LENGTH_SHORT).show();
     }
