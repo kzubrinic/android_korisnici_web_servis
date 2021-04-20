@@ -21,7 +21,7 @@ import java.util.Scanner;
 
 import hr.unidu.kz.korisniciwebservis.pojo.Greska;
 import hr.unidu.kz.korisniciwebservis.pojo.User;
-import hr.unidu.kz.korisniciwebservis.pojo.Users;
+import hr.unidu.kz.korisniciwebservis.pojo.Result;
 
 // Pregled korisnika koji se dohvaćaju iz web servisa
 public class PregledActivity extends ListActivity {
@@ -99,10 +99,10 @@ public class PregledActivity extends ListActivity {
                     String res = inputStreamToString(conn.getInputStream());
                     // parsiramo podatke JSON formatu u objekt tipa Users
                     Gson gson = new Gson();
-                    Users korisnici = gson.fromJson(res, Users.class);
+                    Result korisnici = gson.fromJson(res, Result.class);
                     // metodi onPostExecute šalje se polje objekata tipa User kako bi se
                     // lista popunila podacima pročitanih korisnika
-                    return korisnici.getUsers();
+                    return korisnici.getData();
                 }else {
                     // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
                     // Koristi se ErrorStream, ane InputStream koji vraća web servis i pretvaramo ga u JSON String

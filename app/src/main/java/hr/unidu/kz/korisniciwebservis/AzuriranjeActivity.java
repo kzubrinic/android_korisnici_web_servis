@@ -23,14 +23,13 @@ import java.util.Scanner;
 
 import hr.unidu.kz.korisniciwebservis.pojo.Greska;
 import hr.unidu.kz.korisniciwebservis.pojo.User;
-import hr.unidu.kz.korisniciwebservis.pojo.Users;
+import hr.unidu.kz.korisniciwebservis.pojo.Result;
 
 // Ažuriranje korisnika pomoću web servisa
 public class AzuriranjeActivity extends AppCompatActivity {
     private TextView id, korisnik, ime;
     private Context con;
     private String wsUrl;
-    //= "https://api.meditor.com.hr/users";
     private Greska err = new Greska();
     private User kor;
     @Override
@@ -177,10 +176,10 @@ public class AzuriranjeActivity extends AppCompatActivity {
                         String res = inputStreamToString(conn.getInputStream());
                         // parsiramo podatke JSON formatu u objekt tipa Users
                         Gson gson = new Gson();
-                        Users korisnici = gson.fromJson(res, Users.class);
-                        activityReference.get().kor = korisnici.getUsers()[0];
+                        Result korisnici = gson.fromJson(res, Result.class);
+                        activityReference.get().kor = korisnici.getData()[0];
                         // metodi onPostExecute šalje se id korisnika
-                        return korisnici.getUsers()[0].getId();
+                        return korisnici.getData()[0].getId();
                     }
                     else {
                         // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
@@ -214,10 +213,10 @@ public class AzuriranjeActivity extends AppCompatActivity {
                         String res = inputStreamToString(conn.getInputStream());
                         // parsiramo podatke JSON formatu u objekt tipa Users
                         Gson gson = new Gson();
-                        Users korisnici = gson.fromJson(res, Users.class);
-                        activityReference.get().kor = korisnici.getUsers()[0];
+                        Result korisnici = gson.fromJson(res, Result.class);
+                        activityReference.get().kor = korisnici.getData()[0];
                         // metodi onPostExecute šalje se id korisnika
-                        return korisnici.getUsers()[0].getId();
+                        return korisnici.getData()[0].getId();
                     }
                     else {
                         // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
