@@ -246,6 +246,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
                 activity.korisnik.setText("");
                 activity.ime.setText("");
                 activity.id.requestFocus();
+                return;
             } else if ((rez.getMethod().equals("POST")) && (rez.getData() != null && rez.getData().length > 0)) {
                 activity.id.setText(Integer.toString(rez.getData()[0].getId()));
             } else if ((rez.getMethod().equals("GET")) && (rez.getData() != null && rez.getData().length > 0)) {
