@@ -87,7 +87,6 @@ public class PregledActivity extends ListActivity {
             // šaljemo samo 1 parametar (1 URL), iako metoda može primiti polje parametara
             HttpURLConnection conn = null;
             try {
-                urls[0] = urls[0] + "/1211";
                 // povezujemo se sa zadanim URL-om pomoću GET metode
                 conn = (HttpURLConnection)new URL(urls[0]).openConnection();
                 // postavljamo kodnu stranicu da bi se znakovi prikazali ispravno
