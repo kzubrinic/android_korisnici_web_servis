@@ -61,7 +61,7 @@ public class PregledActivity extends ListActivity {
     // doInBackground prima parametar tipa String (odnosno polje Stringova)
     // onProgressUpdate metoda se ne koristi (tip Void)
     // onPostExecute prima parametar tipa User[]
-    private static class WSPregledHelper extends AsyncTask<String, Void, User[]> {
+    private static class WSPregledHelper extends AsyncTask<String, Void, Result> {
         // How to use a static inner AsyncTask class
         //
         // To prevent leaks, you can make the inner class static. The problem
@@ -81,38 +81,43 @@ public class PregledActivity extends ListActivity {
         }
 
         @Override
-        protected User[] doInBackground(String... urls) {
+        protected Result doInBackground(String... urls) {
             int br = urls.length;
+            InputStream es;
             // šaljemo samo 1 parametar (1 URL), iako metoda može primiti polje parametara
             HttpURLConnection conn = null;
             try {
+                urls[0] = urls[0] + "/1211";
                 // povezujemo se sa zadanim URL-om pomoću GET metode
                 conn = (HttpURLConnection)new URL(urls[0]).openConnection();
                 // postavljamo kodnu stranicu da bi se znakovi prikazali ispravno
                 conn.setRequestProperty("Accept-Charset", "UTF-8");
                 // koristimo HTTP GET metodu za dohvat
                 conn.setRequestMethod("GET");
+                Result korisnici;
                 // dohvaćamo podatke u obliku ulaznog niza
                 // ako su podaci u redno dohvaćeni (HTTP kod 200)
-                if (conn.getResponseCode() == 200) {
-                    // pretvaramo ulazni InputStream u String
+                if ((es = conn.getErrorStream()) == null) {
+                     // pretvaramo ulazni InputStream u String
                     String res = inputStreamToString(conn.getInputStream());
                     // parsiramo podatke JSON formatu u objekt tipa Users
                     Gson gson = new Gson();
-                    Result korisnici = gson.fromJson(res, Result.class);
+                    korisnici = gson.fromJson(res, Result.class);
                     // metodi onPostExecute šalje se polje objekata tipa User kako bi se
                     // lista popunila podacima pročitanih korisnika
-                    return korisnici.getData();
-                }else {
+                    //return korisnici.getData();
+                } else {
+                    String greska = inputStreamToString(es);
+                    Gson gson = new Gson();
+                    korisnici = gson.fromJson(greska, Result.class);
+                 }
+
                     // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
                     // Koristi se ErrorStream, ane InputStream koji vraća web servis i pretvaramo ga u JSON String
-                    String res = inputStreamToString(conn.getErrorStream());
+                    //String res = inputStreamToString(conn.getErrorStream());
                     // parsiramo podatke JSON formata u objekt tipa Greska
-                    Gson gson = new Gson();
-                    // Ažuriramo informaciju o grešci, ako se dogodila
-                    activityReference.get().err = gson.fromJson(res, Greska.class);
-                    return null;
-                }
+
+                    return korisnici;
             } catch (IOException e) {
                 e.printStackTrace();
             } catch(Exception e){
@@ -136,18 +141,18 @@ public class PregledActivity extends ListActivity {
 
         @Override
         // metoda prima polje objekata tipa User
-        protected void onPostExecute(User[] rez){
+        protected void onPostExecute(Result rez){
 
             // get a reference to the activity if it is still there
             PregledActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing()) return;
             // Dogodila se greška kod dohvata
-            if (rez == null){
-                Toast.makeText(activity, activity.err.getError(), Toast.LENGTH_LONG).show();
+            if (rez.getStatus().equals("error")){
+                Toast.makeText(activity, "("+rez.getCode()+") "+rez.getMessage(), Toast.LENGTH_LONG).show();
                 return;
             }
             // Inače ažuriraj listu
-            activity.kor = rez;
+            activity.kor = rez.getData();
             // nakon što dohvati podatke, stvara se adapter za pregled
             activity.adapter = new PregledAdapter(activity.con, activity.kor);
             // adapter se povezuje s listom, a podaci prikazuju na ekranu

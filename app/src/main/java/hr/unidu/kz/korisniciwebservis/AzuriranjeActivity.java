@@ -150,7 +150,7 @@ public class AzuriranjeActivity extends AppCompatActivity {
             activityReference = new WeakReference<>(context);
         }
         @Override
-        protected Integer doInBackground(String... parms) {
+        protected Integer doInBackground(String[] parms) {
             int br = parms.length;
 
             HttpURLConnection conn = null;

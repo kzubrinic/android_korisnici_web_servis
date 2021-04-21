@@ -1,6 +1,6 @@
 package hr.unidu.kz.korisniciwebservis.pojo;
 /*
-    POJO razred omotač za spremanje podataka više korisnika primljenih od web servisa
+    POJO razred omotač za
  */
 public class Result {
     private int code;
