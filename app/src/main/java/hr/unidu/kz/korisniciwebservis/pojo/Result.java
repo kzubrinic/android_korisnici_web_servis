@@ -6,6 +6,7 @@ public class Result {
     private int code;
     private String status;
     private String message;
+    private String method;
     private User[] data;
 
     public User[] getData() {
@@ -38,5 +39,11 @@ public class Result {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+    public void setMethod(String m){
+        method = m;
+    }
+    public String getMethod(){
+        return method;
     }
 }

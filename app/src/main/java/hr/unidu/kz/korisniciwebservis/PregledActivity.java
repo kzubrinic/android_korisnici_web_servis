@@ -27,7 +27,7 @@ import hr.unidu.kz.korisniciwebservis.pojo.Result;
 public class PregledActivity extends ListActivity {
     private Context con;
     private PregledAdapter adapter = null;
-    private User[] kor ;
+    private User[] kor;
     private Greska err = new Greska();
     private String wsUrl;
 
@@ -40,6 +40,7 @@ public class PregledActivity extends ListActivity {
         new WSPregledHelper(this).execute(wsUrl);
         super.onCreate(icicle);
     }
+
     protected void onListItemClick(ListView l, View v, int position, long id) {
         User izabrani = (User) getListAdapter().getItem(position);
         Intent intent = new Intent(this, AzuriranjeActivity.class);
@@ -47,14 +48,15 @@ public class PregledActivity extends ListActivity {
         intent.putExtra("korisnik", izabrani.getUsername());
         intent.putExtra("ime", izabrani.getName());
         intent.putExtra("url_web_servisa", wsUrl);
-        startActivityForResult(intent,0);
-        Toast.makeText(this, "Ime: "+izabrani.getName() , Toast.LENGTH_SHORT).show();
+        startActivityForResult(intent, 0);
+        Toast.makeText(this, "Ime: " + izabrani.getName(), Toast.LENGTH_SHORT).show();
     }
 
     protected void onActivityResult(int reqCode, int resCode, Intent data) {
         super.onActivityResult(reqCode, resCode, data);
         new WSPregledHelper(this).execute(wsUrl);
     }
+
     // privatni razred - jednostavnosti radi da bi mogao bez problema ažurirati ekranska polja aktivnosti
     // Ova obrada se odrađuje u pozadini - u drugom procesu da ne blokira korisničko sučelje.
     // Po završetku obrade izvodi se metoda onPostExecute koja ažurira korisničko sučelje
@@ -88,20 +90,21 @@ public class PregledActivity extends ListActivity {
             HttpURLConnection conn = null;
             try {
                 // povezujemo se sa zadanim URL-om pomoću GET metode
-                conn = (HttpURLConnection)new URL(urls[0]).openConnection();
+                conn = (HttpURLConnection) new URL(urls[0]).openConnection();
                 // postavljamo kodnu stranicu da bi se znakovi prikazali ispravno
                 conn.setRequestProperty("Accept-Charset", "UTF-8");
                 // koristimo HTTP GET metodu za dohvat
                 conn.setRequestMethod("GET");
                 Result korisnici;
                 // dohvaćamo podatke u obliku ulaznog niza
-                // ako su podaci u redno dohvaćeni (HTTP kod 200)
+                // ako su podaci uredno dohvaćeni i error stream je prazan
                 if ((es = conn.getErrorStream()) == null) {
-                     // pretvaramo ulazni InputStream u String
+                    // pretvaramo ulazni InputStream u String
                     String res = inputStreamToString(conn.getInputStream());
                     // parsiramo podatke JSON formatu u objekt tipa Users
                     Gson gson = new Gson();
                     korisnici = gson.fromJson(res, Result.class);
+
                     // metodi onPostExecute šalje se polje objekata tipa User kako bi se
                     // lista popunila podacima pročitanih korisnika
                     //return korisnici.getData();
@@ -109,19 +112,14 @@ public class PregledActivity extends ListActivity {
                     String greska = inputStreamToString(es);
                     Gson gson = new Gson();
                     korisnici = gson.fromJson(greska, Result.class);
-                 }
-
-                    // Inače se vratila greška, pa dohvati poruku greške i pretvori ju u String
-                    // Koristi se ErrorStream, ane InputStream koji vraća web servis i pretvaramo ga u JSON String
-                    //String res = inputStreamToString(conn.getErrorStream());
-                    // parsiramo podatke JSON formata u objekt tipa Greska
-
-                    return korisnici;
+                }
+                korisnici.setMethod("GET");
+                return korisnici;
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-            } finally{
+            } finally {
                 if (conn != null)
                     conn.disconnect();
             }
@@ -131,7 +129,7 @@ public class PregledActivity extends ListActivity {
         /*
     Pomoćna metoda koja dohvaća String iz primljenog input ili error streama
         */
-        private String inputStreamToString(InputStream is){
+        private String inputStreamToString(InputStream is) {
             Scanner s = new Scanner(is).useDelimiter("\\A");
             String res = s.hasNext() ? s.next() : "";
             s.close();
@@ -140,14 +138,14 @@ public class PregledActivity extends ListActivity {
 
         @Override
         // metoda prima polje objekata tipa User
-        protected void onPostExecute(Result rez){
+        protected void onPostExecute(Result rez) {
 
             // get a reference to the activity if it is still there
             PregledActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing()) return;
             // Dogodila se greška kod dohvata
-            if (rez.getStatus().equals("error")){
-                Toast.makeText(activity, "("+rez.getCode()+") "+rez.getMessage(), Toast.LENGTH_LONG).show();
+            if (rez.getStatus().equals("error") || rez.getStatus().equals("fail")) {
+                Toast.makeText(activity, "(" + rez.getCode() + ") " + rez.getMessage(), Toast.LENGTH_LONG).show();
                 return;
             }
             // Inače ažuriraj listu
