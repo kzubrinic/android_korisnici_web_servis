@@ -19,7 +19,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
-import hr.unidu.kz.korisniciwebservis.pojo.Greska;
 import hr.unidu.kz.korisniciwebservis.pojo.User;
 import hr.unidu.kz.korisniciwebservis.pojo.Result;
 
@@ -28,7 +27,6 @@ public class PregledActivity extends ListActivity {
     private Context con;
     private PregledAdapter adapter = null;
     private User[] kor;
-    private Greska err = new Greska();
     private String wsUrl;
 
     @Override
@@ -36,11 +34,12 @@ public class PregledActivity extends ListActivity {
         con = this;
         Intent intent = getIntent();
         wsUrl = intent.getStringExtra("url_web_servisa");
-        // nakon što dohvati listu, ažurira pregled
+        // Pokreni asinhronu obradu - dohvaćanje zapisa pomoću web servisa
         new WSPregledHelper(this).execute(wsUrl);
         super.onCreate(icicle);
     }
 
+    // Kada se izabere redak liste, pokreni aktivnost detalja i predaj joj parametre
     protected void onListItemClick(ListView l, View v, int position, long id) {
         User izabrani = (User) getListAdapter().getItem(position);
         Intent intent = new Intent(this, AzuriranjeActivity.class);
@@ -57,28 +56,24 @@ public class PregledActivity extends ListActivity {
         new WSPregledHelper(this).execute(wsUrl);
     }
 
-    // privatni razred - jednostavnosti radi da bi mogao bez problema ažurirati ekranska polja aktivnosti
+    // Privatni razred - jednostavnosti radi da bi mogao bez problema ažurirati ekranska polja aktivnosti
     // Ova obrada se odrađuje u pozadini - u drugom procesu da ne blokira korisničko sučelje.
     // Po završetku obrade izvodi se metoda onPostExecute koja ažurira korisničko sučelje
-    // doInBackground prima parametar tipa String (odnosno polje Stringova)
+    // doInBackground prima parametar tipa polje Stringova
     // onProgressUpdate metoda se ne koristi (tip Void)
-    // onPostExecute prima parametar tipa User[]
+    // onPostExecute prima parametar tipa Result
     private static class WSPregledHelper extends AsyncTask<String, Void, Result> {
         // How to use a static inner AsyncTask class
-        //
-        // To prevent leaks, you can make the inner class static. The problem
-        // with that, though, is that you no longer have access to the Activity's
-        // UI views or member variables. You can pass in a reference to the
-        // Context but then you run the same risk of a memory leak. (Android can't
-        // garbage collect the Activity after it closes if the AsyncTask class has
-        // a strong reference to it.)
-        // The solution is to make a weak reference to the Activity (or whatever
-        // Context you need).
+        // To prevent leaks, you can make the inner class static. The problem with that, though, is that
+        // you no longer have access to the Activity's UI views or member variables. You can pass in a
+        // reference to the Context but then you run the same risk of a memory leak. (Android can't
+        // garbage collect the Activity after it closes if the AsyncTask class has a strong reference to it.)
+        // The solution is to make a weak reference to the Activity (or whatever Context you need).
         // https://stackoverflow.com/questions/44309241/warning-this-asynctask-class-should-be-static-or-leaks-might-occur#answer-46166223
         private WeakReference<PregledActivity> activityReference;
 
-        // only retain a weak reference to the activity
         WSPregledHelper(PregledActivity context) {
+            // Weak reference na aktivnost - efikasnije oslobađanje memorije
             activityReference = new WeakReference<>(context);
         }
 
@@ -86,7 +81,8 @@ public class PregledActivity extends ListActivity {
         protected Result doInBackground(String... urls) {
             int br = urls.length;
             InputStream es;
-            // šaljemo samo 1 parametar (1 URL), iako metoda može primiti polje parametara
+            Result korisnici;
+            // šaljemo samo 1 parametar (URL web servisa), iako metoda može primiti polje parametara
             HttpURLConnection conn = null;
             try {
                 // povezujemo se sa zadanim URL-om pomoću GET metode
@@ -95,19 +91,14 @@ public class PregledActivity extends ListActivity {
                 conn.setRequestProperty("Accept-Charset", "UTF-8");
                 // koristimo HTTP GET metodu za dohvat
                 conn.setRequestMethod("GET");
-                Result korisnici;
-                // dohvaćamo podatke u obliku ulaznog niza
-                // ako su podaci uredno dohvaćeni i error stream je prazan
+                // Ako je obrada prošla u redu - dohvati povratnu poruku (InputStream) i pretvori ju u String
+                //  inače se dohvaćaju podaci greške iz error streama
                 if ((es = conn.getErrorStream()) == null) {
                     // pretvaramo ulazni InputStream u String
                     String res = inputStreamToString(conn.getInputStream());
-                    // parsiramo podatke JSON formatu u objekt tipa Users
+                    // parsiramo podatke JSON formatu u objekt tipa Result
                     Gson gson = new Gson();
                     korisnici = gson.fromJson(res, Result.class);
-
-                    // metodi onPostExecute šalje se polje objekata tipa User kako bi se
-                    // lista popunila podacima pročitanih korisnika
-                    //return korisnici.getData();
                 } else {
                     String greska = inputStreamToString(es);
                     Gson gson = new Gson();
@@ -115,20 +106,20 @@ public class PregledActivity extends ListActivity {
                 }
                 korisnici.setMethod("GET");
                 return korisnici;
-            } catch (IOException e) {
-                e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
+                korisnici = new Result();
+                korisnici.setCode(-1);
+                korisnici.setStatus("error");
+                korisnici.setMessage(e.getMessage());
             } finally {
                 if (conn != null)
                     conn.disconnect();
             }
-            return null;
+            return korisnici;
         }
 
-        /*
-    Pomoćna metoda koja dohvaća String iz primljenog input ili error streama
-        */
+        // Pomoćna metoda koja vraća String iz primljenog input ili error streama
         private String inputStreamToString(InputStream is) {
             Scanner s = new Scanner(is).useDelimiter("\\A");
             String res = s.hasNext() ? s.next() : "";
@@ -139,8 +130,7 @@ public class PregledActivity extends ListActivity {
         @Override
         // metoda prima polje objekata tipa User
         protected void onPostExecute(Result rez) {
-
-            // get a reference to the activity if it is still there
+            // Dohvati referencu na aktivnost iz "slabe reference"
             PregledActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing()) return;
             // Dogodila se greška kod dohvata

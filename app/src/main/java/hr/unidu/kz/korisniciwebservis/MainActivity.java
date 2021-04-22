@@ -22,11 +22,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ucitajPostavke();
     }
+    // Poziva se aktivnost ažuriranja podataka
     public void azuriranje(View v) {
         Intent intent = new Intent(this, AzuriranjeActivity.class);
         intent.putExtra("url_web_servisa", url);
         startActivity(intent);
     }
+    // Poziva se aktivnost pregleda podataka
     public void pregled(View v) {
         Intent intent = new Intent(this, PregledActivity.class);
         intent.putExtra("url_web_servisa", url);
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+    // Izbornik postavke u kojem se može promijeniti URL web servisa
     private void prikaziPostavke() {
         Intent intent = new Intent(MainActivity.this, PrefsActivity.class);
         // Nakon što se izmjena postavki završi, želimo ažurirati

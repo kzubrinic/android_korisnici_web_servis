@@ -1,7 +1,5 @@
 package hr.unidu.kz.korisniciwebservis.pojo;
-/*
-    POJO razred omotač za
- */
+// POJO razred omotač za serijalizaciju/deserijalizaciju JSON <-> Java klasa
 public class Result {
     private int code;
     private String status;
@@ -12,7 +10,6 @@ public class Result {
     public User[] getData() {
         return data;
     }
-
     public void setData(User[] data) {
         this.data = data;
     }
