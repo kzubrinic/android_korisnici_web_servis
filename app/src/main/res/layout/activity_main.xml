@@ -4,18 +4,41 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <Button
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/azuriranje_korisnika"
-        android:id="@+id/button"
-        android:onClick="azuriranje" />
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/godina"
+            android:layout_width="74dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="Godina"
+            android:inputType="date" />
+
+        <EditText
+            android:id="@+id/drzava"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="2-znamenkasti kod države"
+            android:inputType="text" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/button2"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:onClick="pregled"
-        android:text="@string/pregled_korisnika" />
+        android:onClick="praznici"
+        android:text="@string/dohvat_praznika" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/pregled_praznika"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </LinearLayout>

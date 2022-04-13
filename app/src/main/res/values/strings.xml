@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Korisnici - Web Servis</string>
-    <string name="azuriranje_korisnika">Ažuriranje korisnika</string>
-    <string name="pregled_korisnika">Pregled korisnika</string>
+    <string name="dohvat_drzava">Dohvat država</string>
+    <string name="dohvat_praznika">Dohvat praznika</string>
     <string name="hint_id">ID</string>
     <string name="citaj">Čitaj</string>
     <string name="hint_korisnicko_ime">Korisničko ime</string>
@@ -9,7 +9,7 @@
     <string name="unos">Unos</string>
     <string name="izmjena">Izmjena</string>
     <string name="brisanje">Brisanje</string>
-    <string name="url_web_servisa">https://edutable.stream/api/users</string>
+    <string name="url_web_servisa">https://date.nager.at/api/v3/PublicHolidays</string>
     <string name="pref_title_naslov_aktivnosti">URL web servisa</string>
     <string name="i1_prva_stavka">Postavke</string>
 </resources>
